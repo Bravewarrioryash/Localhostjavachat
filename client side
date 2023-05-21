@@ -1,0 +1,90 @@
+package com.company;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.net.*;
+import java.io.*;
+
+class client extends Thread{
+    Socket s = new Socket("localhost", 3333);
+    DataInputStream din = new DataInputStream(s.getInputStream());
+    DataOutputStream dout = new DataOutputStream(s.getOutputStream());
+    BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+    Frame f;
+    TextArea textArea;
+    client() throws Exception{
+        f = new Frame("ChatMeClient");
+        f.setSize(400, 400);
+        f.setLocation(380, 250);
+        f.setLayout(null);
+        textArea= new TextArea();
+        textArea.setBounds(50, 50, 300, 230);
+        textArea.setEditable(false);
+        Label T1 = new Label("Send Text:");
+        T1.setBounds(50, 300, 150, 20);
+        T1.setFont(new Font("Aerial", Font.ITALIC, 28));
+        TextField text = new TextField();
+        text.setBounds(200, 300, 100, 23);
+        Button send = new Button("Send");
+        send.setBounds(310, 295, 60, 30);
+        f.add(T1);
+        f.add(text);
+        f.add(send);
+        f.add(textArea);
+        f.setVisible(true);
+
+        f.addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent e) {
+                f.dispose();
+            }
+        });
+
+        send.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if(text.getText().length()>=2&&text.getText().length()<=100)
+                {
+                    String send1 = text.getText();
+                    textArea.setBackground(new Color(255, 255, 255));
+                    textArea.append("You:" + send1);
+                    try {
+                        dout.writeUTF(send1);
+                        dout.flush();
+
+                    } catch (IOException ex) {
+                        throw new RuntimeException(ex);
+                    }
+                }
+                text.setText(null);
+            }
+        });
+
+
+
+    }
+    public void run(){
+        while (true)
+        {
+            try {
+                final String str = din.readUTF();
+                if(str.equals(null)){
+
+                }
+                else {
+
+                    textArea.append("\nclient says: " + str);
+                }
+            }catch (Exception e)
+            {
+                System.out.println(e);
+            }
+        }
+    }
+    public static void main(String[] args)  throws Exception {
+        client c = new client();
+        c.run();
+    }
+}
